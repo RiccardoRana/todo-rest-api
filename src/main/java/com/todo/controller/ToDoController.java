@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.todo.model.ToDo;
-import com.todo.repository.ToDoRepository;
+import com.todo.service.ToDoService;
 
 @CrossOrigin
 @RestController
@@ -24,16 +24,16 @@ import com.todo.repository.ToDoRepository;
 public class ToDoController {
 
 	@Autowired
-	private ToDoRepository toDoRepository;
+	private ToDoService toDoService;
 
 	@GetMapping("/todo")
 	public List<ToDo> getAllTodos() {
-		return (List<ToDo>) toDoRepository.findAll();
+		return (List<ToDo>) toDoService.getAllToDos();
 	}
 
 	@GetMapping("todo/{todo_id}")
 	public ToDo getToDo(@PathVariable(value = "todo_id") int toDoId) {
-		Optional<ToDo> toDo = toDoRepository.findById(toDoId);
+		Optional<ToDo> toDo = toDoService.findById(toDoId);
 		if (toDo.isPresent())
 			return toDo.get();
 		else
@@ -43,7 +43,7 @@ public class ToDoController {
 	@PostMapping("/todo")
 	public ResponseEntity<Object> addNewToDo(@Valid @RequestBody ToDo toDo) {
 		try {
-			return new ResponseEntity<Object>(toDoRepository.save(toDo), HttpStatus.CREATED);
+			return new ResponseEntity<Object>(toDoService.createToDo(toDo), HttpStatus.CREATED);
 
 		} catch (Exception e) {
 			return new ResponseEntity<Object>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -52,20 +52,20 @@ public class ToDoController {
 
 	@DeleteMapping("todo/{todo_id}")
 	public void deleteById(@PathVariable(value = "todo_id") int toDoId) {
-		toDoRepository.deleteById(toDoId);
+		toDoService.deleteToDo(toDoId);
 	}
 
 	
 	@PutMapping("/todo")
 	public ResponseEntity<Object> updateToDo(@RequestBody ToDo toDo) {
 		try {
-			Optional<ToDo> t = toDoRepository.findById(toDo.getId());
+			Optional<ToDo> t = toDoService.findById(toDo.getId());
 			if (t.isPresent()) {
 				ToDo ti = t.get();
 				ti.setId(toDo.getId());
 				ti.setNameToDo(toDo.getNameToDo());
 				ti.setDone(toDo.isDone());
-				return new ResponseEntity<Object>(toDoRepository.save(ti), HttpStatus.OK);
+				return new ResponseEntity<Object>(toDoService.createToDo(toDo), HttpStatus.OK);
 			} else {
 				return new ResponseEntity<Object>((ToDo) null, HttpStatus.NOT_FOUND);
 
@@ -78,11 +78,11 @@ public class ToDoController {
 
 	@PutMapping("todo/{todo_id}")
 	public ResponseEntity<ToDo> setToDoDone(@PathVariable(value = "todo_id") int toDoId) {
-		Optional<ToDo> t = toDoRepository.findById(toDoId);
+		Optional<ToDo> t = toDoService.findById(toDoId);
 		if (t.isPresent()) {
 			ToDo ti = t.get();
 			ti.setDone(!ti.isDone());
-			return new ResponseEntity<ToDo>(toDoRepository.save(ti), HttpStatus.OK);
+			return new ResponseEntity<ToDo>(toDoService.createToDo(ti), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<ToDo>((ToDo) null, HttpStatus.NOT_FOUND);
 		}
